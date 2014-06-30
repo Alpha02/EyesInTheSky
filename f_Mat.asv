@@ -1,0 +1,19 @@
+function [ f ] = f( p,x,y,w,h)
+%f_area_per_pixel Summary of this function goes here
+% p:camera id
+% q:a part of Q
+% a:area of one pixel divided by the square of the focal length of the lens
+%   Detailed explanation goes here
+        b=getCamSta(p,'camB');
+        a=b.^(-2);
+        z=getCamSta(p,'camZ');
+        theta=getCamSta(p,'camTheta');
+    for i=1:size(p,2)
+        
+
+        ins=inSightCircleMat(p,x,y,w,h);
+        f=(a(i).*((b(i)-z(i)).^2)).^(-1);
+        ins=ins.*f;
+    end
+end
+

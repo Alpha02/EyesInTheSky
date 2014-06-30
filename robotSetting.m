@@ -1,0 +1,452 @@
+function varargout = robotSetting(varargin)
+%ROBOTSETTING M-file for robotSetting.fig
+%      ROBOTSETTING, by itself, creates a new ROBOTSETTING or raises the existing
+%      singleton*.
+%
+%      H = ROBOTSETTING returns the handle to a new ROBOTSETTING or the handle to
+%      the existing singleton*.
+%
+%      ROBOTSETTING('Property','Value',...) creates a new ROBOTSETTING using the
+%      given property value pairs. Unrecognized properties are passed via
+%      varargin to robotSetting_OpeningFcn.  This calling syntax produces a
+%      warning when there is an existing singleton*.
+%
+%      ROBOTSETTING('CALLBACK') and ROBOTSETTING('CALLBACK',hObject,...) call the
+%      local function named CALLBACK in ROBOTSETTING.M with the given input
+%      arguments.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help robotSetting
+
+% Last Modified by GUIDE v2.5 30-Jun-2014 11:04:13
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @robotSetting_OpeningFcn, ...
+                   'gui_OutputFcn',  @robotSetting_OutputFcn, ...
+                   'gui_LayoutFcn',  [], ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+   gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before robotSetting is made visible.
+function robotSetting_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   unrecognized PropertyName/PropertyValue pairs from the
+%            command line (see VARARGIN)
+
+% Choose default command line output for robotSetting
+global camB camC camZ camPsi_roll camPsi_pitch camPsi_yaw camTheta camTheta2 camType camT_begin camT_end p;        
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+if size(varargin,2)~=1
+        set(hObject,'UserData',max(p)+1);
+else
+        current_p=varargin{1};
+        set(hObject,'UserData',current_p);
+
+        switch camType(current_p)
+            case 0 
+                set(handles.group_camType,'SelectedObject',handles.rad_circle);
+            case 1 
+                set(handles.group_camType,'SelectedObject',handles.rad_1deg);
+            case 2 
+                set(handles.group_camType,'SelectedObject',handles.rad_6deg);
+        end
+        set(handles.edit_b,'String',num2str(camB(current_p)));
+        set(handles.edit_x,'String',num2str(camC(1,current_p)));
+        set(handles.edit_y,'String',num2str(camC(2,current_p)));  
+        set(handles.edit_z,'String',num2str(camZ(current_p)));
+        set(handles.edit_yaw,'String',num2str(camPsi_yaw(current_p)));
+        set(handles.edit_pitch,'String',num2str(camPsi_pitch(current_p)));
+        set(handles.edit_roll,'String',num2str(camPsi_roll(current_p)));
+        set(handles.edit_theta1,'String',num2str(camTheta(current_p)));
+        set(handles.edit_theta2,'String',num2str(camTheta2(current_p)));    
+        set(handles.edit_begin,'String',num2str(camT_begin(current_p)));  
+        set(handles.edit_end,'String',num2str(camT_end(current_p)));     
+end
+robotSetting_updateParams;
+rotate3d('on');
+
+% UIWAIT makes robotSetting wait for user response (see UIRESUME)
+% uiwait(handles.fig_robotSetting);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = robotSetting_OutputFcn(hObject, eventdata, handles)
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% --- Executes when selected object is changed in group_camType.
+function group_camType_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in group_camType 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+    switch get(eventdata.NewValue,'Tag')
+        case 'rad_circle' 
+            set(handles.edit_yaw,'Enable','off');
+            set(handles.edit_pitch,'Enable','off');
+            set(handles.edit_roll,'Enable','off');
+            set(handles.edit_theta2,'Enable','off');
+        case 'rad_1deg'
+            set(handles.edit_yaw,'Enable','on');
+            set(handles.edit_pitch,'Enable','off');
+            set(handles.edit_roll,'Enable','off');
+            set(handles.edit_theta2,'Enable','on');
+        case 'rad_6deg'
+            set(handles.edit_yaw,'Enable','on');
+            set(handles.edit_pitch,'Enable','on');
+            set(handles.edit_roll,'Enable','on');
+            set(handles.edit_theta2,'Enable','on');
+    end
+robotSetting_updateParams;
+% --- Executes on button press in btn_accept.
+function btn_accept_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_accept (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    global camB camC camZ camPsi_roll camPsi_pitch camPsi_yaw camTheta camTheta2 camType camT_begin camT_end p;
+
+    current_p=get(handles.fig_robotSetting,'UserData');
+    h=get(handles.group_camType,'SelectedObject');
+    p(current_p)=current_p;
+    type=get(h,'UserData');
+    camType(:,current_p)=type;
+    camB(:,current_p)=str2double(get(handles.edit_b,'String'));
+    x=str2double(get(handles.edit_x,'String'));
+    y=str2double(get(handles.edit_y,'String'));    
+    camC(:,current_p)=[x;y];
+    camZ(:,current_p)=str2double(get(handles.edit_z,'String'));
+    camPsi_yaw(:,current_p)=str2double(get(handles.edit_yaw,'String'));
+    camPsi_pitch(:,current_p)=str2double(get(handles.edit_pitch,'String'));
+    camPsi_roll(:,current_p)=str2double(get(handles.edit_roll,'String'));
+    camTheta(:,current_p)=str2double(get(handles.edit_theta1,'String'));
+    camTheta2(:,current_p)=str2double(get(handles.edit_theta2,'String'));
+    camT_begin(:,current_p)=str2double(get(handles.edit_begin,'String'));    
+    camT_end(:,current_p)=str2double(get(handles.edit_end,'String'));        
+    close(handles.fig_robotSetting);
+
+% --- Executes on button press in btn_cancel.
+function btn_cancel_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_cancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+close(handles.fig_robotSetting);
+
+
+function edit_x_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_x as text
+%        str2double(get(hObject,'String')) returns contents of edit_x as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_x_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_x (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_y_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_y (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_y as text
+%        str2double(get(hObject,'String')) returns contents of edit_y as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_y_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_y (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_z_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_z as text
+%        str2double(get(hObject,'String')) returns contents of edit_z as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_z_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_yaw_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_yaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_yaw as text
+%        str2double(get(hObject,'String')) returns contents of edit_yaw as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_yaw_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_yaw (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_pitch_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_pitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_pitch as text
+%        str2double(get(hObject,'String')) returns contents of edit_pitch as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_pitch_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_pitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_roll_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_roll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_roll as text
+%        str2double(get(hObject,'String')) returns contents of edit_roll as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_roll_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_roll (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_theta1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_theta1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_theta1 as text
+%        str2double(get(hObject,'String')) returns contents of edit_theta1 as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_theta1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_theta1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_theta2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_theta2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_theta2 as text
+%        str2double(get(hObject,'String')) returns contents of edit_theta2 as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_theta2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_theta2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_b_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_b (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_b as text
+%        str2double(get(hObject,'String')) returns contents of edit_b as a double
+robotSetting_updateParams;
+
+% --- Executes during object creation, after setting all properties.
+function edit_b_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_b (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes when fig_robotSetting is resized.
+function fig_robotSetting_ResizeFcn(hObject, eventdata, handles)
+% hObject    handle to fig_robotSetting (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+function edit_begin_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_begin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_begin as text
+%        str2double(get(hObject,'String')) returns contents of edit_begin as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_begin_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_begin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_end_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_end (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_end as text
+%        str2double(get(hObject,'String')) returns contents of edit_end as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_end_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_end (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_strategy_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_strategy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_strategy as text
+%        str2double(get(hObject,'String')) returns contents of edit_strategy as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_strategy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_strategy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in btn_load.
+function btn_load_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

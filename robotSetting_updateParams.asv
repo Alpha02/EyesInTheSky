@@ -1,0 +1,25 @@
+global p;
+current_p=get(handles.fig_robotSetting,'UserData');
+h=get(handles.group_camType,'SelectedObject');
+type=get(h,'UserData');
+B=str2double(get(handles.edit_b,'String'));
+x=str2double(get(handles.edit_x,'String'));
+y=str2double(get(handles.edit_y,'String'));    
+C=[x;y];
+Z=str2double(get(handles.edit_z,'String'));
+Psi_yaw=str2double(get(handles.edit_yaw,'String'));
+Psi_pitch=str2double(get(handles.edit_pitch,'String'));
+Psi_roll=str2double(get(handles.edit_roll,'String'));
+Theta1=str2double(get(handles.edit_theta1,'String'));
+Theta2=str2double(get(handles.edit_theta2,'String'));
+cla();
+hold on;
+camDraw(current_p,type,C,Z,Psi_yaw,Psi_pitch,Psi_roll,B,Theta1,Theta2);
+
+for k=1:size(p,2)
+    if k~=current_p
+    camDrawIndex(k);
+    end
+end
+camorbit(-10,0);
+hold off;

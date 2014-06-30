@@ -1,0 +1,25 @@
+function [ xout,yout ] = camIntersect( p1,p2 )
+%UNTITLED Summary of this function goes here
+%   Detailed explanation goes here
+    c=getCamSta([p1,p2],camC);
+    z=getCamSta([p1,p2],camZ);
+    theta=getCamSta([p1,p2],camTheta);
+    r=z.*tan(theta);
+    types=getCamSta([p1,p2],camType);
+    if(types(1)==0)
+        if(types(2)==0)
+            [xout,yout]=circcirc(c(1,1),c(2,1),r(1),c(1,2),c(2,2),r(2));
+        else
+
+        end
+    else
+        if(types(2)==0)
+            
+        else
+            
+        end        
+    end
+        
+
+end
+

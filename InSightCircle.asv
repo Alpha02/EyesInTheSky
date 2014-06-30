@@ -1,0 +1,13 @@
+function [ in ] = InSightCircle( p,q )
+%UNTITLED7 Summary of this function goes here
+%   Detailed explanation goes here
+    times=size(p,2);
+    for pi=1:times
+        c=getCamSta(pi,'camC');
+        z=getCamSta(pi,'camZ');
+        
+    end
+    
+    
+end
+

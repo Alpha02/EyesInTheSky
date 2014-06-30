@@ -1,0 +1,18 @@
+function [ insight] = inSightRect( p,x,y,w,h )
+%inSightCircle Summary of this function goes here
+%   Detailed explanation goes here
+    c=getCamSta(p,'camC');
+    z=getCamSta(p,'camZ');
+    theta=getCamSta(p,'camTheta');
+    theta2=getCamSta(p,'camTheta2');
+    psi=getCamSta(p,'camPsi_roll');   
+    R=[ cos(psi),   sin(psi);
+        -sin(psi),  cos(psi)
+      ];
+    [PX,PY]=meshgrid(x:x+w-1,y:y+h-1);
+    
+    bx=1-im2bw(R*abs(PX-c(1))-tan([theta;theta2]).*z);
+    by=1-im2bw(R*abs(PY-c(2))-tan([theta;theta2]).*z);
+    insight=bx.*by;
+end
+
